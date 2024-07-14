@@ -1,10 +1,10 @@
-import express from "express";
-import { User } from "../models/userModel.js";
-import bcrypt from "bcrypt";
+import express from 'express'
+import { User } from '../models/userModel.js'
+import bcrypt from 'bcrypt'
 
-export const router = express.Router();
+export const router = express.Router()
 
-router.post("/", async (request, response) => {
+router.post('/', async (request, response) => {
   try {
     // const { error } = validate(request.body);
     // if (error) {
@@ -17,38 +17,44 @@ router.post("/", async (request, response) => {
       !request.body.email ||
       !request.body.password
     ) {
-      console.log("There is a missing property");
-      return response
-        .status(400)
-        .send({ message: "One of the property is missing" });
+      console.log('There is a missing property')
+      return response.send({
+        message: 'One of the property is missing',
+        status: 400,
+      })
     }
 
-    console.log("Before finding a user");
+    console.log('Before finding a user')
 
-    const user = await User.findOne({ email: request.body.email });
-    console.log("Here is the email", request.body.email);
+    const user = await User.findOne({ email: request.body.email })
+    console.log('Here is the email', request.body.email)
 
     if (user) {
-      return response
-        .status(409)
-        .send({ message: "The user with the emial alredy exist" });
+      return response.send({
+        message: 'The user with the email already exist',
+        status: 409,
+      })
     }
 
-    const salt = await bcrypt.genSalt(Number(process.env.SALT));
-    const hashedPassword = await bcrypt.hash(request.body.password, salt);
+    const salt = await bcrypt.genSalt(Number(process.env.SALT))
+    const hashedPassword = await bcrypt.hash(request.body.password, salt)
     const newUser = await new User({
       ...request.body,
       password: hashedPassword,
-    });
-    User.create(newUser);
+    })
+    User.create(newUser)
 
-    return response.status(201).send("User registered");
+    return response.send({
+      message: 'User created successfully',
+      status: 201,
+    })
   } catch (error) {
-    console.log(error);
-    return response
-      .status(500)
-      .send({ message: "There is an error while creating a new user" });
+    console.log(error)
+    return response.send({
+      message: 'There is an error while creating a new user',
+      status: 500,
+    })
   }
-});
+})
 
-export default router;
+export default router

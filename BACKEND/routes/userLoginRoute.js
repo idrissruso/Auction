@@ -1,52 +1,57 @@
-import express from "express";
-import { User } from "../models/userModel.js";
-import bcrypt from "bcrypt";
-import Joi from "joi";
+import express from 'express'
+import { User } from '../models/userModel.js'
+import bcrypt from 'bcrypt'
+import Joi from 'joi'
 
-const router = express.Router();
+const router = express.Router()
 
-router.post("/", async (response, request) => {
+router.post('/', async (request, response) => {
   try {
-    const { error } = validate(request.body);
-
-    if (error) {
-      return response.status(400).send({ message: error.details[0].message });
+    console.log(request)
+    if (!request.body.email || !request.body.password) {
+      return response.send({
+        message: 'One of the property is missing',
+        status: 400,
+      })
     }
 
-    const user = await User.findOne({ email: request.body.email });
+    const user = await User.findOne({ email: request.body.email })
 
     if (!user) {
-      return response
-        .status(401)
-        .send({ message: "Invalid email or password" });
+      return response.send({
+        message: 'Invalid email or password',
+        status: 401,
+      })
     }
 
     const validPassword = await bcrypt.compare(
       request.body.password,
       user.password
-    );
+    )
 
     if (!validPassword) {
-      return response.status(401).send({ message: "Passowrd is incorrect" });
+      return response.send({ message: 'Password is incorrect', status: 401 })
     }
 
-    const token = user.generateAuthToken();
+    const token = user.generateAuthToken()
 
-    return response
-      .status(200)
-      .send({ data: token, message: "Logged in successfully!" });
+    return response.send({
+      data: token,
+      message: 'Logged in successfully!',
+      status: 200,
+    })
   } catch (error) {
-    console.log("Error happend while authenticating the user");
+    console.log('Error happened while authenticating the user')
   }
-});
+})
 
 const validate = (data) => {
   const schema = Joi.object({
-    email: Joi.string().email().required().label("Email"),
-    password: Joi.string().required().label("Password"),
-  });
+    email: Joi.string().email().required().label('Email'),
+    password: Joi.string().required().label('Password'),
+  })
 
-  return schema.validate(data);
-};
+  return schema.validate(data)
+}
 
-export default router;
+export default router
